@@ -30,7 +30,7 @@ struct coroutine_header
     jmp_buf calling_context;
     jmp_buf coroutine_context;
     int return_value;
-    coroutine_status status;
+    enum coroutine_status status;
     coroutine_function function;
     void *parameter;
 };
@@ -40,14 +40,14 @@ struct coroutine
     // As the stack grows down from high memory addresses it is placed first 
     // in the co-routine structure. If our code tramples beyond the stack
     // boundaries at least we won't destroy the co-routine data :).
-    char stack[4096 - sizeof(coroutine_header)];
-    coroutine_header header;
+    char stack[4096 - sizeof(struct coroutine_header)];
+    struct coroutine_header header;
 };
 
 // coroutine_create takes a function that will be the entry point to our
 // co-routine plus a void* parameter. This co-routine isn't run until you call
 // coroutine_resume on it.
-coroutine *coroutine_create(coroutine_function function, void *parameter);
+struct coroutine *coroutine_create(coroutine_function function, void *parameter);
 
 // This function, called within a co-routine, will yield back to the calling
 // site. This has undefined, and most likely disastrous/humorous, results if 
@@ -60,9 +60,9 @@ void coroutine_yield();
 // COROUTINE_STATUS_EXECUTING but does not run anything. If a co-routine has 
 // finished executing it will return COROUTINE_STATUS_FINISHED. Otherwise it 
 // will return COROUTINE_STATUS_YIELDED.
-coroutine_status coroutine_resume(coroutine *co);
+enum coroutine_status coroutine_resume(struct coroutine *co);
 
 // When the co-routine is no longer needed, coroutine_destroy will release any
 // allocated resources.
-void coroutine_destroy(coroutine *co);
+void coroutine_destroy(struct coroutine *co);
 

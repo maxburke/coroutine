@@ -1,12 +1,12 @@
 #include <malloc.h>
 #include "coroutine.h"
 
-coroutine *coroutine_create(coroutine_function function, void *parameter)
+struct coroutine *coroutine_create(coroutine_function function, void *parameter)
 {
     // Co-routine objects are 4kb in size and 4kb aligned to make some address calculation
     // easy later without having to carry around pointers to the objects that manage our 
     // co-routine state.
-    coroutine *co = (coroutine *)_aligned_malloc(sizeof(coroutine), 4096);
+    struct coroutine *co = (struct coroutine *)_aligned_malloc(sizeof(struct coroutine), 4096);
     co->header.return_value = 0;
     co->header.status = COROUTINE_STATUS_NEW;
     co->header.function = function;
@@ -17,13 +17,14 @@ coroutine *coroutine_create(coroutine_function function, void *parameter)
 
 void coroutine_yield()
 {
+    struct coroutine *co;
     register unsigned int stack;
     __asm mov stack, esp
 
     // Aligning the co-routine object on a 4k boundary (and being 4k sized) makes it easy to
     // calculate the address of the co-routine object. By rounding the stack pointer down to 
     // the next 4kb boundary below we get the address of the coroutine object.
-    coroutine *co = (coroutine *)(stack & ~4095);
+    co = (struct coroutine *)(stack & ~4095);
     if (!setjmp(co->header.coroutine_context))
     {
         co->header.status = COROUTINE_STATUS_YIELDED;
@@ -33,7 +34,7 @@ void coroutine_yield()
     co->header.status = COROUTINE_STATUS_EXECUTING;
 }
 
-coroutine_status coroutine_resume(coroutine *co)
+enum coroutine_status coroutine_resume(struct coroutine *co)
 {
     if (co->header.status == COROUTINE_STATUS_FINISHED
             || co->header.status == COROUTINE_STATUS_EXECUTING)
@@ -73,7 +74,7 @@ coroutine_status coroutine_resume(coroutine *co)
     return co->header.status;
 }
 
-void coroutine_destroy(coroutine *co)
+void coroutine_destroy(struct coroutine *co)
 {
     _aligned_free(co);
 }
