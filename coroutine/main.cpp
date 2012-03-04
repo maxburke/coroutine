@@ -1,3 +1,5 @@
+// main.cpp / 2012 Max Burke / Public Domain
+
 #include "coroutine.h"
 #include <stdio.h>
 

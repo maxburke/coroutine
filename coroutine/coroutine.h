@@ -1,3 +1,5 @@
+// coroutine.h / 2012 Max Burke / Public Domain
+
 #include <setjmp.h>
 
 enum coroutine_status

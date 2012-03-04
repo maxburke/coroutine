@@ -1,3 +1,5 @@
+// coroutine.cpp / 2012 Max Burke / Public Domain
+
 #include <malloc.h>
 #include "coroutine.h"
 
